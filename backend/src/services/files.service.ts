@@ -27,6 +27,7 @@ export const uploadFilesService = async (
   userId: string,
   files: Express.Multer.File[],
   uploadedVia: keyof typeof UploadSourceEnum,
+  wId: string,
 ) => {
   const user = await UserModel.findOne({ _id: userId });
   if (!user) throw new UnauthorizedException('Unauthorized access');
@@ -36,7 +37,7 @@ export const uploadFilesService = async (
     files.map(async (file) => {
       let _storageKey: string | null = null;
       try {
-        const { storageKey } = await uploadToS3(file, userId);
+        const { storageKey } = await uploadToS3(file, userId, wId);
         _storageKey = storageKey;
         const createdFile = await FileModel.create({
           userId,
@@ -173,53 +174,57 @@ export const getFileUrlService = async (fileId: string) => {
   };
 };
 
-export const deleteFilesService = async (userId: string, fileIds: string[]) => {
+export const deleteFilesService = async (
+  userId: string,
+  fileIds: string[],
+): Promise<any> => {
   const session = await mongoose.startSession();
   try {
-    
-  let result;
+    let result;
 
-   //  withTransaction handles the transaction, rollback
-  await session.withTransaction(async() => {
-    const files = await FileModel.find(
-      { _id: { $in: fileIds }, userId,},
-    ).session(session);
-    if (!files.length) throw new NotFoundException('No files found');
-  
-    const s3Errors: string[] = [];
-  
-    await Promise.all(
-      files.map(async (file) => {
-        try {
-          await deleteFromS3(file.storageKey);
-        } catch (error) {
-          logger.error(`Failed to delete ${file.storageKey} from s3`, error);
-          s3Errors.push(file.storageKey);
-        }
-      }),
-    );
-    const successfulFileIds = files
-      .filter((file) => !s3Errors.includes(file.storageKey))
-      .map((file) => file._id);
-  
-    const { deletedCount } = await FileModel.deleteMany(
-      { _id: { $in: successfulFileIds }, userId,}
-    ).session(session);
-  
-    if (s3Errors.length > 0) {
-      logger.warn(`Failed to delete ${s3Errors.length} files form S3`);
-    }
-  
-    result = {
-      deletedCount,
-      failedCount: s3Errors.length,
-    };
-  })
+    //  withTransaction handles the transaction, rollback
+    await session.withTransaction(async () => {
+      const files = await FileModel.find({
+        _id: { $in: fileIds },
+        userId,
+      }).session(session);
+      if (!files.length) throw new NotFoundException('No files found');
+
+      const s3Errors: string[] = [];
+
+      await Promise.all(
+        files.map(async (file) => {
+          try {
+            await deleteFromS3(file.storageKey);
+          } catch (error) {
+            logger.error(`Failed to delete ${file.storageKey} from s3`, error);
+            s3Errors.push(file.storageKey);
+          }
+        }),
+      );
+      const successfulFileIds = files
+        .filter((file) => !s3Errors.includes(file.storageKey))
+        .map((file) => file._id);
+
+      const { deletedCount } = await FileModel.deleteMany({
+        _id: { $in: successfulFileIds },
+        userId,
+      }).session(session);
+
+      if (s3Errors.length > 0) {
+        logger.warn(`Failed to delete ${s3Errors.length} files form S3`);
+      }
+
+      result = {
+        deletedCount,
+        failedCount: s3Errors.length,
+      };
+    });
     return result;
-  } catch(error){
-    throw error
-  } finally{
-    await session.endSession()
+  } catch (error) {
+    throw error;
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -228,8 +233,8 @@ export const downloadFilesService = async (
   fileIds: string[],
 ) => {
   const files = await FileModel.find({
-    _id: { $in: fileIds, },
-     userId,
+    _id: { $in: fileIds },
+    userId,
   });
   if (!files.length) throw new NotFoundException('No files found');
 
@@ -306,9 +311,12 @@ async function handleMultipleFilesDownload(
   return url;
 }
 
+// dealing with direct s3 storage
+
 async function uploadToS3(
   file: Express.Multer.File,
   userId: string,
+  wId: string,
   meta?: Record<string, string>,
 ) {
   try {
@@ -319,7 +327,7 @@ async function uploadToS3(
 
     logger.info(sanitizeFilename(basename), cleanName);
 
-    const storageKey = `users/${userId}/${uuidv4()}-${cleanName}${ext}`;
+    const storageKey = `workspace/${wId}users/${userId}/${uuidv4()}-${cleanName}${ext}`;
 
     const command = new PutObjectCommand({
       Bucket: Env.AWS_S3_BUCKET!,

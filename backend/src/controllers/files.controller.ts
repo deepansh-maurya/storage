@@ -18,10 +18,11 @@ import {
 export const uploadFilesViaWebController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    const wid = req.user?._wid;
     const files = req.files as Express.Multer.File[];
     const uploadedVia = UploadSourceEnum.WEB;
 
-    const results = await uploadFilesService(userId, files, uploadedVia);
+    const results = await uploadFilesService(userId, files, uploadedVia, wid);
 
     return res.status(HTTPSTATUS.OK).json(results);
   },
@@ -30,10 +31,11 @@ export const uploadFilesViaWebController = asyncHandler(
 export const uploadFilesViaApiController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    const wid = req.user?._wid;
     const files = req.files as Express.Multer.File[];
     const uploadedVia = UploadSourceEnum.API;
 
-    const results = await uploadFilesService(userId, files, uploadedVia);
+    const results = await uploadFilesService(userId, files, uploadedVia, wid);
 
     return res.status(HTTPSTATUS.OK).json(results);
   },

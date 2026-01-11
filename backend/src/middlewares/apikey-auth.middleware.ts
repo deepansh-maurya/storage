@@ -5,6 +5,7 @@ import { KEY_TYPE, KeyType } from '../utils/key';
 import ApiKeyModel from '../models/apiKeys.model';
 import { logger } from '../utils/logger';
 import { findByIdUserService } from '../services/user.service';
+import WorkspaceModel from '../models/workspace.model';
 
 export const apiKeyAuthMiddleware = async (
   req: Request,
@@ -61,6 +62,20 @@ export const apiKeyAuthMiddleware = async (
     ApiKeyModel.updateLastUsedAt(hashedKey).catch(logger.error);
 
     req.user = user;
+
+    // attach workspace id for this user if exists
+    try {
+      const workspace = await WorkspaceModel.findOne({
+        userId: apiKeyDoc.userId,
+      })
+        .select('_id')
+        .lean();
+      if (workspace) {
+        req.user._wid = workspace._id;
+      }
+    } catch (err) {
+      logger.error('Failed to lookup workspace for user', err);
+    }
 
     logger.info('API KEY Used', apiKeyDoc.displayKey);
 

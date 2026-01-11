@@ -11,6 +11,7 @@ export const passwordSchema = z.string().trim().min(4);
 
 export const registerSchema = z.object({
   name: z.string().trim().min(1),
+  workspaceName: z.string().trim().min(1),
   email: emailSchema,
   password: passwordSchema,
   profilePicture: z.string().optional(),

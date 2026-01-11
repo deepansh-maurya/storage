@@ -3,7 +3,7 @@ import FileModel from '../models/file.model';
 import { formatBytes } from '../utils/format-byte';
 import StorageModel from '../models/storage.model';
 
-export const getUserAnalyticsWithChartService = async (
+export const    getUserAnalyticsWithChartService = async (
   userId: string,
   filter: {
     dateFrom?: Date;

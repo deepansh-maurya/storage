@@ -6,6 +6,8 @@ import {
 import UserModel from '../models/user.model';
 import { NotFoundException, UnauthorizedException } from '../utils/app-error';
 import StorageModel from '../models/storage.model';
+import WorkspaceModel from '../models/workspace.model';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 import { signJwtToken } from '../utils/jwt';
 
@@ -24,6 +26,19 @@ export const registerService = async (body: RegisterSchemaType) => {
       });
 
       await newUser.save({ session });
+
+      // create workspace for the user if provided
+      if ((body as any).workspaceName) {
+        const workspaceUuid = uuidv4();
+        const workspace = new WorkspaceModel({
+          name: (body as any).workspaceName,
+          uuid: workspaceUuid,
+          displayName: `${(body as any).workspaceName}-${workspaceUuid}`,
+          userId: newUser._id,
+        });
+
+        await workspace.save({ session });
+      }
 
       const storage = new StorageModel({
         userId: newUser._id,
