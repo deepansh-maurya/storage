@@ -2,7 +2,6 @@ import { ErrorRequestHandler, Response } from 'express';
 import { ZodError } from 'zod';
 import { HTTPSTATUS } from '../config/http.config';
 import { AppError } from '../utils/app-error';
-import { logger } from '../utils/logger';
 import { ErrorCodeEnum } from '../enums/error-code.enum';
 
 const formatZodError = (res: Response, error: ZodError) => {
@@ -24,7 +23,7 @@ export const errorHandler: ErrorRequestHandler = (
   res,
   next,
 ): any => {
-  logger.error(`Error occured on PATH: ${req.path}`, {
+  console.error(`Error occured on PATH: ${req.path}`, {
     body: req.body,
     params: req.params,
     error,

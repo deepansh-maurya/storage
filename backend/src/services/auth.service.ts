@@ -8,7 +8,6 @@ import { NotFoundException, UnauthorizedException } from '../utils/app-error';
 import StorageModel from '../models/storage.model';
 import WorkspaceModel from '../models/workspace.model';
 import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../utils/logger';
 import { signJwtToken } from '../utils/jwt';
 
 export const registerService = async (body: RegisterSchemaType) => {
@@ -49,7 +48,7 @@ export const registerService = async (body: RegisterSchemaType) => {
       return { user: newUser.omitPassword() };
     });
   } catch (error) {
-    logger.error('Error registering user', error);
+    console.error('Error registering user', error);
     throw error;
   } finally {
     await session.endSession();

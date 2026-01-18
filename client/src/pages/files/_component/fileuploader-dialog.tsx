@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { FileUploader, type FileUploaderRef } from "@/components/file-uploader";
 import { useUploadFilesMutation } from "@/features/files/filesAPI";
@@ -30,7 +30,7 @@ export const FileUploaderDialog = (props: { children: React.ReactNode }) => {
     const totalFiles = selectedFiles.length;
     const toastId = toast.loading(`Uploading ${totalFiles} file(s)...`, {
       description: "Please wait while we upload youtr files",
-      duration: Infinity,
+      duration: Infinity
     });
 
     const formData = new FormData();
@@ -46,15 +46,15 @@ export const FileUploaderDialog = (props: { children: React.ReactNode }) => {
             (failedCount > 0 ? `${failedCount} failed` : ""),
           {
             id: toastId,
-            description: `Your files are now avalable`,
+            description: `Your files are now avalable`
           }
         );
       })
       .catch((error) => {
-        console.log(error);
+        console(error);
         toast.error("Failed to upload files", {
           id: toastId,
-          description: "Please try again later",
+          description: "Please try again later"
         });
       })
       .finally(() => {
@@ -91,7 +91,7 @@ export const FileUploaderDialog = (props: { children: React.ReactNode }) => {
               "application/zip": [".zip"],
               "application/x-rar-compressed": [".rar"],
               "application/x-tar": [".tar"],
-              "text/plain": [".txt"],
+              "text/plain": [".txt"]
             }}
           />
         </div>

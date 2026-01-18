@@ -8,7 +8,7 @@ import {
   Monitor,
   Moon,
   Settings,
-  Sun,
+  Sun
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { PROTECTED_ROUTES } from "@/routes/common/routePath";
@@ -34,28 +34,28 @@ const Navbar = () => {
     {
       icon: Home,
       href: PROTECTED_ROUTES.OVERVIEW,
-      label: "Overview",
+      label: "Overview"
     },
     {
       icon: Folder,
       href: PROTECTED_ROUTES.FILES,
-      label: "Files",
+      label: "Files"
     },
     {
       icon: HelpCircle,
       href: PROTECTED_ROUTES.DOCS,
-      label: "Docs",
+      label: "Docs"
     },
     {
       icon: Key,
       href: PROTECTED_ROUTES.APIKEYS,
-      label: "Api Keys",
+      label: "Api Keys"
     },
     {
       icon: Settings,
       href: PROTECTED_ROUTES.SETTINGS,
-      label: "Settings",
-    },
+      label: "Settings"
+    }
   ];
 
   const handleLogout = async () => {
@@ -67,7 +67,7 @@ const Navbar = () => {
   };
   return (
     <>
-      <header className="mx-auto sticky top-0 bg-background flex h-24 w-full max-w-7xl items-center justify-between gap-x-6 border-b p-6 lg:px-8 z-50">
+      <header className="mx-auto sticky top-0 bg-surface/90 backdrop-blur-sm flex h-20 w-full max-w-7xl items-center justify-between gap-x-6 border-b border-[#0b1220] p-4 lg:px-8 z-50 shadow-sm">
         <div className="w-full flex h-14 max-w-[var(--max-width)] items-center mx-auto">
           <div className="w-full flex items-center justify-between">
             {/* Left side - Logo */}
@@ -101,7 +101,7 @@ const Navbar = () => {
 
             {/* {} */}
             {/* Right side - User actions */}
-            <div className="flex items-center !gap-8">
+            <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 size="icon"
@@ -140,8 +140,7 @@ const NavLogoAndUser = (props: {
         <Button
           variant="ghost"
           size="icon"
-          className="inline-flex lg:hidden !cursor-pointer
-              text-black bg-black/10 dark:text-white dark:bg-white/10 dark:hover:bg-white/10"
+          className="inline-flex lg:hidden !cursor-pointer text-muted bg-transparent hover:bg-white/5"
           onClick={props.handleOpen}
         >
           <Menu className="h-6 w-6" />
@@ -149,14 +148,14 @@ const NavLogoAndUser = (props: {
 
         <Logo />
       </div>
-      <span className="hidden md:flex text-lg lg:text-4xl !text-muted-foreground !font-thin">
+      <span className="hidden md:flex text-lg lg:text-2xl text-muted font-thin">
         /
       </span>
-      <div className="hidden md:flex !items-center">
-        <div className="!mr-1.5 flex !size-7 lg:!size-8 flex-shrink-0 !items-center justify-center rounded-md bg-primary p-1 font-bold !text-white text-sm lg:text-inherit uppercase">
+      <div className="hidden md:flex items-center gap-3">
+        <div className="mr-1.5 flex size-7 lg:size-8 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-accent p-1 font-bold text-white text-sm lg:text-inherit uppercase">
           {props?.username?.charAt(0)}
         </div>
-        <span className="z-10 truncate font-semibold !pt-[1.7px] text-sm lg:text-base">
+        <span className="z-10 truncate font-medium text-sm lg:text-base text-foreground">
           {props?.username || "no name"}
         </span>
       </div>

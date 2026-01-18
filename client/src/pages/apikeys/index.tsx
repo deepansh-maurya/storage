@@ -8,7 +8,7 @@ const ApiKeys = () => {
   return (
     <PageLayout
       title="Api Keys"
-      subtitle="View and manage your UploadNest API keys."
+      subtitle="View and manage your NimbusDrive API keys."
       rightAction={
         <CreateApiKeyDialog>
           <Button className="!pr-7">

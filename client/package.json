@@ -1,7 +1,8 @@
 {
-  "name": "client",
+  "name": "nimbus-drive",
   "private": true,
   "version": "0.0.0",
+  "description": "NimbusDrive — modern cloud file storage UI",
   "type": "module",
   "scripts": {
     "dev": "vite",

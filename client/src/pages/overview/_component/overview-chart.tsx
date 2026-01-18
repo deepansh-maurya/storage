@@ -5,7 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@/components/ui/card";
 import {
   type ChartConfig,
@@ -13,7 +13,7 @@ import {
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
+  ChartTooltipContent
 } from "@/components/ui/chart";
 import StorageUsage from "./storage-usage";
 import { formatBytes } from "@/lib/format-utils";
@@ -27,23 +27,23 @@ const COLORS = ["var(--primary)", "var(--chart-1)"];
 const CHART_TYPES = {
   uploads: {
     label: "Uploaded Files",
-    color: COLORS[0],
+    color: COLORS[0]
   },
   usage: {
     label: "Usage",
-    color: COLORS[1],
-  },
+    color: COLORS[1]
+  }
 } as const;
 
 const chartConfig: ChartConfig = {
   uploads: {
     label: "Uploaded",
-    color: COLORS[0],
+    color: COLORS[0]
   },
   usage: {
     label: "Usage",
-    color: COLORS[1],
-  },
+    color: COLORS[1]
+  }
 } satisfies ChartConfig;
 
 // Generate past month data with zeros for new users
@@ -59,7 +59,7 @@ const generatePast30DaysData = (chartData: ChartDataType[] = []) => {
       date: dateString,
       uploads: data?.uploadedFiles ?? 0,
       usage: data?.usages ?? 0,
-      formatedUsage: data?.formatedUsages ?? "0B",
+      formatedUsage: data?.formatedUsages ?? "0B"
     };
   });
 };
@@ -70,17 +70,17 @@ export function OverviewChart() {
 
   const from = subDays(startOfDay(new Date()), 29); // substract
   const to = endOfDay(new Date());
-  console.log(from, to);
+  console(from, to);
 
   const { data, isLoading } = useGetUserAnalyticsWithChartQuery({
     from: from.toISOString(),
-    to: to.toISOString(),
+    to: to.toISOString()
   });
 
   const filledChartData = generatePast30DaysData(data?.chart || []);
   const totals = {
     uploads: data?.totaluploadFilesForPeriod ?? 0,
-    usage: data?.totalUsageForPeriod ?? "0B",
+    usage: data?.totalUsageForPeriod ?? "0B"
   };
 
   const storageData = data?.storageUsageSummary;
@@ -152,7 +152,7 @@ export function OverviewChart() {
                   data={filledChartData}
                   margin={{
                     left: 12,
-                    right: 12,
+                    right: 12
                   }}
                 >
                   <CartesianGrid vertical={false} />
@@ -166,7 +166,7 @@ export function OverviewChart() {
                       const date = new Date(value);
                       return date.toLocaleDateString("en-US", {
                         month: "short",
-                        day: "numeric",
+                        day: "numeric"
                       });
                     }}
                   />
@@ -180,7 +180,7 @@ export function OverviewChart() {
                             weekday: "short",
                             month: "long",
                             day: "numeric",
-                            year: "numeric",
+                            year: "numeric"
                           });
                         }}
                         formatter={(value, name) => {
@@ -198,7 +198,7 @@ export function OverviewChart() {
                                 <div
                                   className="h-2 w-2 shrink-0 rounded-[2px]"
                                   style={{
-                                    backgroundColor: color,
+                                    backgroundColor: color
                                   }}
                                 />
                                 <span>

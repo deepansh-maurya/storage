@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useDeleteApiKeyMutation } from "@/features/apikeys/apikeysAPI";
@@ -16,7 +16,7 @@ export const apiKeysColumns: ColumnDef<any>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => <span>{row.original?.name}</span>,
+    cell: ({ row }) => <span>{row.original?.name}</span>
   },
   {
     accessorKey: "displayKey",
@@ -41,12 +41,12 @@ export const apiKeysColumns: ColumnDef<any>[] = [
           </span>
         </div>
       );
-    },
+    }
   },
   {
     accessorKey: "createdAt",
     header: "Created At",
-    cell: ({ row }) => format(row.getValue("createdAt"), "MMM dd, yyyy"),
+    cell: ({ row }) => format(row.getValue("createdAt"), "MMM dd, yyyy")
   },
   {
     accessorKey: "lastUsedAt",
@@ -56,13 +56,13 @@ export const apiKeysColumns: ColumnDef<any>[] = [
       return (
         <span>{lastUsedAt ? format(lastUsedAt, "MMM dd, yyyy") : "Never"}</span>
       );
-    },
+    }
   },
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => <ActionsCell row={row} />,
-  },
+    cell: ({ row }) => <ActionsCell row={row} />
+  }
 ];
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -78,7 +78,7 @@ const ActionsCell = ({ row }: { row: any }) => {
         toast.success("Apikey deleted successfully");
       })
       .catch((error) => {
-        console.log(error);
+        console(error);
         toast.error("Failed to deleted apikey");
       });
   };

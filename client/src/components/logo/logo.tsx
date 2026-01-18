@@ -5,13 +5,16 @@ const Logo = (props: { url?: string }) => {
   return (
     <Link
       to={props.url || PROTECTED_ROUTES.OVERVIEW}
-      className="flex items-center gap-2"
+      className="flex items-center gap-3"
     >
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
+        <span className="text-white font-extrabold">ND</span>
+      </div>
       <div>
-        <h1 className="relative flex select-none flex-row items-baseline font-bold text-2xl lg:text-3xl">
-          <span className="sr-only">UploadNest</span>
-          <span className="tracking-tight cursor-pointer">
-            upload<span className="text-primary">nest</span>
+        <h1 className="select-none font-bold text-lg lg:text-2xl tracking-tight">
+          <span className="sr-only">NimbusDrive</span>
+          <span className="text-foreground">
+            Nimbus<span className="text-primary">Drive</span>
           </span>
         </h1>
       </div>

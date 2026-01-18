@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import SideBar from "@/components/sidebar";
+import Footer from "@/components/footer";
 import { Outlet } from "react-router-dom";
 
 const AppLayout = () => {
@@ -16,6 +17,7 @@ const AppLayout = () => {
             <Outlet />
           </div>
         </main>
+        <Footer />
       </div>
     </>
   );

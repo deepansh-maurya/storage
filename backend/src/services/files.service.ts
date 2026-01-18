@@ -13,14 +13,7 @@ import {
   UnauthorizedException,
 } from '../utils/app-error';
 import { sanitizeFilename } from '../utils/helper';
-import { logger } from '../utils/logger';
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  PutObjectCommand,
-} from '@aws-sdk/client-s3';
-import { Env } from '../config/env.config';
-import { s3 } from '../config/aws-s3.config';
+import StorageService from '../storage/StorageService';
 import mongoose from 'mongoose';
 
 export const uploadFilesService = async (
@@ -58,7 +51,7 @@ export const uploadFilesService = async (
           mimeType: createdFile.mimeType,
         };
       } catch (error) {
-        logger.error('Error uploading file', error);
+        console.error('Error uploading file', error);
         if (_storageKey) {
           //delete from s3 bucket
         }
@@ -76,7 +69,7 @@ export const uploadFilesService = async (
     .map((r) => r.reason.message);
 
   if (failedRes.length > 0) {
-    logger.warn('Failed to upload files', files);
+    console.warn('Failed to upload files', files);
     // throw new InternalServerException(
     //   ` Failed to upload ${failedRes.length} out of ${files.length} files`,
     // );
@@ -197,7 +190,7 @@ export const deleteFilesService = async (
           try {
             await deleteFromS3(file.storageKey);
           } catch (error) {
-            logger.error(`Failed to delete ${file.storageKey} from s3`, error);
+            console.error(`Failed to delete ${file.storageKey} from s3`, error);
             s3Errors.push(file.storageKey);
           }
         }),
@@ -212,7 +205,7 @@ export const deleteFilesService = async (
       }).session(session);
 
       if (s3Errors.length > 0) {
-        logger.warn(`Failed to delete ${s3Errors.length} files form S3`);
+        console.warn(`Failed to delete ${s3Errors.length} files form S3`);
       }
 
       result = {
@@ -257,60 +250,69 @@ export const downloadFilesService = async (
     isZip: true,
   };
 };
-
 async function handleMultipleFilesDownload(
   files: Array<{ storageKey: string; originalName: string }>,
   userId: string,
 ) {
+  const storageService = StorageService.getInstance;
+
   const timestamp = Date.now();
 
-  const zipKey = `temp-zips/${userId}/${timestamp}.zip`;
+  // where ZIP will be stored internally
+  const zipStorageKey = `temp-zips/${userId}/${timestamp}.zip`;
 
+  // filename user will download
   const zipFilename = `uploadnest-${timestamp}.zip`;
 
   const zip = archiver('zip', { zlib: { level: 6 } });
-
   const passThrough = new PassThrough();
 
   zip.on('error', (err) => {
     passThrough.destroy(err);
   });
 
-  const upload = new Upload({
-    client: s3,
-    params: {
-      Bucket: Env.AWS_S3_BUCKET!,
-      Key: zipKey,
-      Body: passThrough,
-      ContentType: 'application/zip',
-    },
-  });
-
+  // pipe zip → passthrough
   zip.pipe(passThrough);
 
+  // 🔹 upload ZIP stream to local storage
+  const uploadPromise = storageService.uploadFile(
+    {
+      // fake Multer-like object for stream upload
+      buffer: Buffer.alloc(0),
+      originalname: zipFilename,
+      mimetype: 'application/zip',
+      size: 0,
+    } as any,
+    zipStorageKey,
+  );
+
+  // append files into zip
   for (const file of files) {
     try {
-      const stream = await getS3ReadStream(file.storageKey);
-      zip.append(stream, { name: sanitizeFilename(file.originalName) });
-    } catch (error: any) {
-      zip.destroy(error);
+      const stream = await storageService.getFileReadStream(file.storageKey);
+      zip.append(stream, {
+        name: sanitizeFilename(file.originalName),
+      });
+    } catch (error) {
+      zip.destroy(error as Error);
       throw error;
     }
   }
 
   await zip.finalize();
+  await uploadPromise;
 
-  await upload.done();
-
-  const url = await getFileFromS3({
-    storageKey: zipKey,
+  // 🔹 generate signed URL using your backend
+  const url = storageService.getSignedFileUrl({
+    storageKey: zipStorageKey,
     filename: zipFilename,
     expiresIn: 3600,
+    mimeType: 'application/zip',
   });
 
   return url;
 }
-
+``;
 // dealing with direct s3 storage
 
 async function uploadToS3(
@@ -325,18 +327,20 @@ async function uploadToS3(
 
     const cleanName = sanitizeFilename(basename).substring(0, 64);
 
-    logger.info(sanitizeFilename(basename), cleanName);
+    console.info(sanitizeFilename(basename), cleanName);
 
     const storageKey = `workspace/${wId}users/${userId}/${uuidv4()}-${cleanName}${ext}`;
 
-    const command = new PutObjectCommand({
-      Bucket: Env.AWS_S3_BUCKET!,
-      Key: storageKey,
-      Body: file.buffer,
-      ...(meta && { Metadata: meta }),
-    });
+    // const command = new PutObjectCommand({
+    //   Bucket: Env.AWS_S3_BUCKET!,
+    //   Key: storageKey,
+    //   Body: file.buffer,
+    //   ...(meta && { Metadata: meta })
+    // });
 
-    await s3.send(command);
+    // await s3.send(command);
+
+    await StorageService.getInstance.uploadFile(file, storageKey);
 
     // const url = `https://${Env.AWS_S3_BUCKET}.s3.${Env.AWS_REGION}.amazonaws.com/${storageKey}`;
 
@@ -344,7 +348,7 @@ async function uploadToS3(
       storageKey,
     };
   } catch (error) {
-    logger.error('AWS Error Failed upload', error);
+    console.error('AWS Error Failed upload', error);
     throw error;
   }
 }
@@ -361,54 +365,64 @@ async function getFileFromS3({
   mimeType?: string;
 }) {
   try {
-    const command = new GetObjectCommand({
-      Bucket: Env.AWS_S3_BUCKET!,
-      Key: storageKey,
-      ...(!filename && {
-        ResponseContentType: mimeType,
-        ResponseContentDisposition: `inline`,
-      }),
+    // const command = new GetObjectCommand({
+    //   Bucket: Env.AWS_S3_BUCKET!,
+    //   Key: storageKey,
+    //   ...(!filename && {
+    //     ResponseContentType: mimeType,
+    //     ResponseContentDisposition: `inline`,
+    //   }),
 
-      ...(filename && {
-        ResponseContentDisposition: `attachment;filename="${filename}"`,
-      }),
+    //   ...(filename && {
+    //     ResponseContentDisposition: `attachment;filename="${filename}"`,
+    //   }),
+    // });
+
+    // return await getSignedUrl(s3, command, { expiresIn });
+    return await StorageService.getInstance.getSignedFileUrl({
+      storageKey,
+      filename,
+      mimeType,
+      expiresIn,
     });
-
-    return await getSignedUrl(s3, command, { expiresIn });
   } catch (error) {
-    logger.error(`Failed to get file from S3: ${storageKey}`);
+    console.error(`Failed to get file from S3: ${storageKey}`);
     throw error;
   }
 }
 
 async function getS3ReadStream(storageKey: string) {
   try {
-    const command = new GetObjectCommand({
-      Bucket: Env.AWS_S3_BUCKET!,
-      Key: storageKey,
-    });
-    const response = await s3.send(command);
+    // const command = new GetObjectCommand({
+    //   Bucket: Env.AWS_S3_BUCKET!,
+    //   Key: storageKey,
+    // });
+    // const response = await s3.send(command);
 
-    if (!response.Body) {
-      logger.error(`No body returned for key: ${storageKey}`);
-      throw new InternalServerException(`No body returned for key`);
-    }
-    return response.Body as Readable;
+    // if (!response.Body) {
+    //   console.error(`No body returned for key: ${storageKey}`);
+    //   throw new InternalServerException(`No body returned for key`);
+    // }
+    // return response.Body as Readable;
+
+    return await StorageService.getInstance.getFileReadStream(storageKey);
   } catch (error) {
-    logger.error(`Error getting s3 stream for key: ${storageKey}`);
+    console.error(`Error getting s3 stream for key: ${storageKey}`);
     throw new InternalServerException(`Failed to retrieve file`);
   }
 }
 
 async function deleteFromS3(storageKey: string) {
   try {
-    const command = new DeleteObjectCommand({
-      Bucket: Env.AWS_S3_BUCKET!,
-      Key: storageKey,
-    });
-    await s3.send(command);
+    // const command = new DeleteObjectCommand({
+    //   Bucket: Env.AWS_S3_BUCKET!,
+    //   Key: storageKey,
+    // });
+    // await s3.send(command);
+
+    await StorageService.getInstance.deleteFile(storageKey);
   } catch (error) {
-    logger.error(`Failed to delete file from S3`, storageKey);
+    console.error(`Failed to delete file from S3`, storageKey);
     throw error;
   }
 }

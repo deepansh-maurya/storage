@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { BadRequestException, UnauthorizedException } from '../utils/app-error';
 import StorageModel from '../models/storage.model';
-import { logger } from '../utils/logger';
 
 export const CheckStorageAvailability = async (
   req: Request,
@@ -22,7 +21,7 @@ export const CheckStorageAvailability = async (
 
     const result = await StorageModel.validateUpload(userId, totalFileSize);
 
-    logger.info(`Storage result: ${JSON.stringify(result)}`);
+    console.info(`Storage result: ${JSON.stringify(result)}`);
 
     next();
   } catch (error) {

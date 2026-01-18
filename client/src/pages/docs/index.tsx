@@ -8,7 +8,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@/components/ui/card";
 import PageLayout from "@/components/page-layout";
 import { PROTECTED_ROUTES } from "@/routes/common/routePath";
@@ -23,12 +23,12 @@ const Docs = () => {
   const backgroundColor = theme === "dark" ? "#161616" : "#fafafa";
 
   return (
-    <PageLayout title="Docs" subtitle="Uploadnest API Documentation">
+    <PageLayout title="Docs" subtitle="NimbusDrive API Documentation">
       <div className="mx-auto px-1">
         <div className="mb-8">
           <h2 className="text-lg font-semibold">TypeScript/JavaScript SDK</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            TypeScript library for uploading files to Uploadnest API. Works in
+            TypeScript library for uploading files to NimbusDrive API. Works in
             Node.js, Next.js, and browsers. Remember to create your API key on
             your{" "}
             <Link
@@ -50,7 +50,7 @@ const Docs = () => {
                   language=""
                   style={codeTheme}
                   customStyle={{
-                    background: backgroundColor,
+                    background: backgroundColor
                   }}
                 >
                   {"npm install @uploadnest/client"}
@@ -73,7 +73,7 @@ const Docs = () => {
                   style={codeTheme}
                   customStyle={{
                     background: backgroundColor,
-                    padding: "1rem",
+                    padding: "1rem"
                   }}
                 >
                   {`import { UploadNestClient } from "@uploadnest/client";
@@ -84,7 +84,7 @@ const client = new UploadNestClient({
 
 // Upload files
 const result = await client.uploadFiles(files);
-console.log(result.files);`}
+console(result.files);`}
                 </SyntaxHighlighter>
               </div>
             </CardContent>
@@ -105,7 +105,7 @@ console.log(result.files);`}
                   customStyle={{
                     margin: 0,
                     background: backgroundColor,
-                    padding: "1rem",
+                    padding: "1rem"
                   }}
                 >
                   {`import { UploadNestClient } from "@uploadnest/client";
@@ -146,7 +146,7 @@ await client.uploadFiles(buffer);`}
                   customStyle={{
                     margin: 0,
                     background: backgroundColor,
-                    padding: "1rem",
+                    padding: "1rem"
                   }}
                 >
                   {`import { UploadNestClient } from "@uploadnest/client";
@@ -168,7 +168,7 @@ function FileUpload() {
   const handleUpload = async (event) => {
     const files = event.target.files;
     const result = await client.uploadFiles(files[0]);
-    console.log('Uploaded:', result.files);
+    console('Uploaded:', result.files);
   };
 
   return <input type="file" onChange={handleUpload} />;
@@ -193,7 +193,7 @@ function FileUpload() {
                   customStyle={{
                     margin: 0,
                     background: backgroundColor,
-                    padding: "1rem",
+                    padding: "1rem"
                   }}
                 >
                   {`// app/upload/page.tsx
@@ -232,19 +232,19 @@ async function uploadAction(formData: FormData) {
                   customStyle={{
                     margin: 0,
                     background: backgroundColor,
-                    padding: "1rem",
+                    padding: "1rem"
                   }}
                 >
                   {`import { ValidationError, UploadError } from "@uploadnest/client/errors";
 
 try {
   const result = await client.uploadFiles(files);
-  console.log('Success:', result.files);
+  console('Success:', result.files);
 } catch (error) {
   if (error instanceof ValidationError) {
-    console.log("Invalid file type:", error.message);
+    console("Invalid file type:", error.message);
   } else if (error instanceof UploadError) {
-    console.log("Upload failed:", error.message);
+    console("Upload failed:", error.message);
   } else {
     console.error("Unexpected error:", error);
   }
@@ -296,7 +296,7 @@ try {
                   customStyle={{
                     margin: 0,
                     padding: "1rem",
-                    background: backgroundColor,
+                    background: backgroundColor
                   }}
                 >
                   {`async function uploadFileDirectly(apiKey, file) {
@@ -317,7 +317,7 @@ try {
     }
     
     const data = await response.json();
-    console.log('Upload successful:', data);
+    console('Upload successful:', data);
     return data;
   } catch (error) {
     console.error('Error uploading file:', error);

@@ -18,7 +18,7 @@ const PageLayout = ({
   subtitle,
   rightAction,
   showHeader = true,
-  addMarginTop = false,
+  addMarginTop = false
 }: PropsType) => {
   return (
     <div>
@@ -31,12 +31,12 @@ const PageLayout = ({
       )}
       <div
         className={cn(
-          "w-full max-w-[var(--max-width)] mx-auto pt-8",
+          "w-full max-w-[var(--max-width)] mx-auto pt-8 px-4 sm:px-6",
           addMarginTop && "-mt-20",
           className
         )}
       >
-        {children}
+        <div className="card p-6">{children}</div>
       </div>
     </div>
   );

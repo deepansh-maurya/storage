@@ -10,7 +10,7 @@ class StorageService {
 
   private constructor() {}
 
-  static getInstance(): StorageService {
+  static get getInstance(): StorageService {
     if (!StorageService.instance) {
       StorageService.instance = new StorageService();
     }

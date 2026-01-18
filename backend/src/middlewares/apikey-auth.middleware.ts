@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import { UnauthorizedException } from '../utils/app-error';
 import { KEY_TYPE, KeyType } from '../utils/key';
 import ApiKeyModel from '../models/apiKeys.model';
-import { logger } from '../utils/logger';
 import { findByIdUserService } from '../services/user.service';
 import WorkspaceModel from '../models/workspace.model';
 
@@ -25,7 +24,6 @@ export const apiKeyAuthMiddleware = async (
     if (!apiKey) throw new UnauthorizedException('API key missing');
 
     if (!apiKey.startsWith('sk_') || apiKey.length < 20) {
-      logger.error('Invalid Api key format');
       throw new UnauthorizedException('Invalid Api key format');
     }
 
@@ -49,7 +47,6 @@ export const apiKeyAuthMiddleware = async (
       .lean();
 
     if (!apiKeyDoc) {
-      logger.warn('API Key not found');
       throw new UnauthorizedException('Invalid API key');
     }
 
@@ -59,7 +56,7 @@ export const apiKeyAuthMiddleware = async (
       throw new UnauthorizedException('User not found for this API key');
     }
 
-    ApiKeyModel.updateLastUsedAt(hashedKey).catch(logger.error);
+   ApiKeyModel.updateLastUsedAt(hashedKey)
 
     req.user = user;
 
@@ -74,10 +71,10 @@ export const apiKeyAuthMiddleware = async (
         req.user._wid = workspace._id;
       }
     } catch (err) {
-      logger.error('Failed to lookup workspace for user', err);
+      console.error('Failed to lookup workspace for user', err);
     }
 
-    logger.info('API KEY Used', apiKeyDoc.displayKey);
+    console.info('API KEY Used', apiKeyDoc.displayKey);
 
     next();
   } catch (error) {

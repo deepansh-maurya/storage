@@ -13,7 +13,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/app/hook";
@@ -22,7 +22,7 @@ import { Loader } from "lucide-react";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters")
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -36,7 +36,7 @@ const SignInForm = ({
   const [login, { isLoading }] = useLoginMutation();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema)
   });
 
   const onSubmit = (values: FormValues) => {
@@ -50,7 +50,7 @@ const SignInForm = ({
         }, 1000);
       })
       .catch((error) => {
-        console.log(error);
+        // console(error);
         toast.error(error.data?.message || "Failed to login");
       });
   };
