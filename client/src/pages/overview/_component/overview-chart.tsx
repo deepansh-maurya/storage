@@ -70,7 +70,7 @@ export function OverviewChart() {
 
   const from = subDays(startOfDay(new Date()), 29); // substract
   const to = endOfDay(new Date());
-  console(from, to);
+  // console(from, to);
 
   const { data, isLoading } = useGetUserAnalyticsWithChartQuery({
     from: from.toISOString(),

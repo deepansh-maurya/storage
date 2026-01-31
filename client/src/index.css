@@ -18,6 +18,21 @@
   --shadow-sm: 0 6px 18px rgba(2, 6, 23, 0.5);
 }
 
+/* Light theme tokens */
+html.light {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  /* gray-500 */
+  --foreground: #0b1220;
+  --primary: #2563eb;
+  --accent: #7c3aed;
+  --success: #10b981;
+  --danger: #ef4444;
+  --radius: 0.75rem;
+  --shadow-sm: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+
 * {
   box-sizing: border-box;
 }

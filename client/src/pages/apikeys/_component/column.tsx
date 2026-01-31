@@ -77,8 +77,8 @@ const ActionsCell = ({ row }: { row: any }) => {
       .then(() => {
         toast.success("Apikey deleted successfully");
       })
-      .catch((error) => {
-        console(error);
+      .catch(() => {
+        // console(error);
         toast.error("Failed to deleted apikey");
       });
   };

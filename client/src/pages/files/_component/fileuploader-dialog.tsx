@@ -50,8 +50,8 @@ export const FileUploaderDialog = (props: { children: React.ReactNode }) => {
           }
         );
       })
-      .catch((error) => {
-        console(error);
+      .catch(() => {
+        // console(error);
         toast.error("Failed to upload files", {
           id: toastId,
           description: "Please try again later"
