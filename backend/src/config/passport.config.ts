@@ -4,6 +4,7 @@ import {
   StrategyOptions,
 } from 'passport-jwt';
 import passport from 'passport';
+import WorkspaceModel from '../models/workspace.model';
 import { Env } from './env.config';
 import { findByIdUserService } from '../services/user.service';
 
@@ -29,6 +30,23 @@ passport.use(
       if (!user) {
         return done(null, false);
       }
+      try {
+        const workspace = await WorkspaceModel.findOne({
+          userId: user._id,
+        })
+          .select('_id')
+          .lean();
+
+        if (workspace) {
+          (user as any)._wid = workspace._id;
+        }
+      } catch (err) {
+        console.error(
+          'Failed to lookup workspace for user in passport strategy',
+          err,
+        );
+      }
+
       return done(null, user);
     } catch (error) {
       return done(null, false);

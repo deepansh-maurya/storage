@@ -22,6 +22,8 @@ export const uploadFilesViaWebController = asyncHandler(
     const files = req.files as Express.Multer.File[];
     const uploadedVia = UploadSourceEnum.WEB;
 
+    console.log(wid,25,req.user);
+
     const results = await uploadFilesService(userId, files, uploadedVia, wid);
 
     return res.status(HTTPSTATUS.OK).json(results);
@@ -105,7 +107,5 @@ export const publicGetFileUrlController = asyncHandler(
     });
 
     stream.pipe(res);
-    // //302
-    // return res.redirect(url);
   },
 );

@@ -72,10 +72,17 @@ class StorageService {
   }) {
     const expiresAt = Math.floor(Date.now() / 1000) + expiresIn;
 
+    // console.log(storageKey, expiresAt);
+
     const payload = `${storageKey}:${expiresAt}`;
+
+    // console.log({ payload });
+
     const signature = this.sign(payload);
 
     const baseUrl = `${process.env.API_BASE_URL}/files/download`;
+
+    // console.log/(baseUrl)
 
     const url = new URL(baseUrl);
     url.searchParams.set('key', storageKey);

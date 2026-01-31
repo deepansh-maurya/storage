@@ -56,20 +56,26 @@ export const apiKeyAuthMiddleware = async (
       throw new UnauthorizedException('User not found for this API key');
     }
 
-   ApiKeyModel.updateLastUsedAt(hashedKey)
+    ApiKeyModel.updateLastUsedAt(hashedKey);
 
     req.user = user;
 
-    // attach workspace id for this user if exists
+    console.log(user, 63);
+
     try {
       const workspace = await WorkspaceModel.findOne({
-        userId: apiKeyDoc.userId,
+        userId: user._id,
       })
         .select('_id')
         .lean();
+
+      console.log(workspace);
+
       if (workspace) {
         req.user._wid = workspace._id;
       }
+
+      console.log(req.user._wid);
     } catch (err) {
       console.error('Failed to lookup workspace for user', err);
     }
@@ -78,6 +84,6 @@ export const apiKeyAuthMiddleware = async (
 
     next();
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

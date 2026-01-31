@@ -1,8 +1,6 @@
 import path from 'path';
-import { PassThrough, Readable } from 'stream';
+import { PassThrough } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
-import { Upload } from '@aws-sdk/lib-storage';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import FileModel, { UploadSourceEnum } from '../models/file.model';
 import UserModel from '../models/user.model';
@@ -70,9 +68,6 @@ export const uploadFilesService = async (
 
   if (failedRes.length > 0) {
     console.warn('Failed to upload files', files);
-    // throw new InternalServerException(
-    //   ` Failed to upload ${failedRes.length} out of ${files.length} files`,
-    // );
   }
 
   return {
@@ -86,7 +81,7 @@ export const getAllFilesService = async (
   userId: string,
   filter: {
     keyword?: string;
-  },
+  },  
   pagination: { pageSize: number; pageNumber: number },
 ) => {
   const { keyword } = filter;
@@ -116,6 +111,8 @@ export const getAllFilesService = async (
       .sort({ createdAt: -1 }),
     FileModel.countDocuments(filterConditons),
   ]);
+
+  // console.log({ files, totalCount });
 
   const filesWithUrls = await Promise.all(
     files.map(async (file) => {
@@ -150,14 +147,7 @@ export const getAllFilesService = async (
 export const getFileUrlService = async (fileId: string) => {
   const file = await FileModel.findOne({ _id: fileId });
   if (!file) throw new NotFoundException('File not found');
-  //stream
   const stream = await getS3ReadStream(file.storageKey);
-
-  // const url = await getFileFromS3({
-  //   storageKey: file.storageKey,
-  //   mimeType: file.mimeType,
-  //   expiresIn: 3600,
-  // });
 
   return {
     url: '',
@@ -174,8 +164,6 @@ export const deleteFilesService = async (
   const session = await mongoose.startSession();
   try {
     let result;
-
-    //  withTransaction handles the transaction, rollback
     await session.withTransaction(async () => {
       const files = await FileModel.find({
         _id: { $in: fileIds },
@@ -250,6 +238,7 @@ export const downloadFilesService = async (
     isZip: true,
   };
 };
+
 async function handleMultipleFilesDownload(
   files: Array<{ storageKey: string; originalName: string }>,
   userId: string,
@@ -258,10 +247,7 @@ async function handleMultipleFilesDownload(
 
   const timestamp = Date.now();
 
-  // where ZIP will be stored internally
   const zipStorageKey = `temp-zips/${userId}/${timestamp}.zip`;
-
-  // filename user will download
   const zipFilename = `uploadnest-${timestamp}.zip`;
 
   const zip = archiver('zip', { zlib: { level: 6 } });
@@ -271,13 +257,10 @@ async function handleMultipleFilesDownload(
     passThrough.destroy(err);
   });
 
-  // pipe zip → passthrough
   zip.pipe(passThrough);
 
-  // 🔹 upload ZIP stream to local storage
   const uploadPromise = storageService.uploadFile(
     {
-      // fake Multer-like object for stream upload
       buffer: Buffer.alloc(0),
       originalname: zipFilename,
       mimetype: 'application/zip',
@@ -312,8 +295,8 @@ async function handleMultipleFilesDownload(
 
   return url;
 }
-``;
-// dealing with direct s3 storage
+
+// pure handlers
 
 async function uploadToS3(
   file: Express.Multer.File,
@@ -327,22 +310,8 @@ async function uploadToS3(
 
     const cleanName = sanitizeFilename(basename).substring(0, 64);
 
-    console.info(sanitizeFilename(basename), cleanName);
-
     const storageKey = `workspace/${wId}users/${userId}/${uuidv4()}-${cleanName}${ext}`;
-
-    // const command = new PutObjectCommand({
-    //   Bucket: Env.AWS_S3_BUCKET!,
-    //   Key: storageKey,
-    //   Body: file.buffer,
-    //   ...(meta && { Metadata: meta })
-    // });
-
-    // await s3.send(command);
-
     await StorageService.getInstance.uploadFile(file, storageKey);
-
-    // const url = `https://${Env.AWS_S3_BUCKET}.s3.${Env.AWS_REGION}.amazonaws.com/${storageKey}`;
 
     return {
       storageKey,
@@ -365,20 +334,6 @@ async function getFileFromS3({
   mimeType?: string;
 }) {
   try {
-    // const command = new GetObjectCommand({
-    //   Bucket: Env.AWS_S3_BUCKET!,
-    //   Key: storageKey,
-    //   ...(!filename && {
-    //     ResponseContentType: mimeType,
-    //     ResponseContentDisposition: `inline`,
-    //   }),
-
-    //   ...(filename && {
-    //     ResponseContentDisposition: `attachment;filename="${filename}"`,
-    //   }),
-    // });
-
-    // return await getSignedUrl(s3, command, { expiresIn });
     return await StorageService.getInstance.getSignedFileUrl({
       storageKey,
       filename,
@@ -393,18 +348,6 @@ async function getFileFromS3({
 
 async function getS3ReadStream(storageKey: string) {
   try {
-    // const command = new GetObjectCommand({
-    //   Bucket: Env.AWS_S3_BUCKET!,
-    //   Key: storageKey,
-    // });
-    // const response = await s3.send(command);
-
-    // if (!response.Body) {
-    //   console.error(`No body returned for key: ${storageKey}`);
-    //   throw new InternalServerException(`No body returned for key`);
-    // }
-    // return response.Body as Readable;
-
     return await StorageService.getInstance.getFileReadStream(storageKey);
   } catch (error) {
     console.error(`Error getting s3 stream for key: ${storageKey}`);
@@ -414,12 +357,6 @@ async function getS3ReadStream(storageKey: string) {
 
 async function deleteFromS3(storageKey: string) {
   try {
-    // const command = new DeleteObjectCommand({
-    //   Bucket: Env.AWS_S3_BUCKET!,
-    //   Key: storageKey,
-    // });
-    // await s3.send(command);
-
     await StorageService.getInstance.deleteFile(storageKey);
   } catch (error) {
     console.error(`Failed to delete file from S3`, storageKey);

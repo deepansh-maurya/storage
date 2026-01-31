@@ -79,9 +79,12 @@ const UploadFileLayout = (props: Props) => {
   };
 
   const handleCopy = () => {
+
+    console.log(selectedFiles)
+
     const urls = selectedFiles
       .map((file) => {
-        return `${import.meta.env.VITE_BASE_API_URL}/files/${file._id}/view`;
+        return `${file.url}`;
       })
       .join("\n");
     navigator.clipboard

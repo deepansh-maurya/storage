@@ -21,7 +21,7 @@ export const CheckStorageAvailability = async (
 
     const result = await StorageModel.validateUpload(userId, totalFileSize);
 
-    console.info(`Storage result: ${JSON.stringify(result)}`);
+    // console.info(`Storage result: ${JSON.stringify(result)}`);
 
     next();
   } catch (error) {
